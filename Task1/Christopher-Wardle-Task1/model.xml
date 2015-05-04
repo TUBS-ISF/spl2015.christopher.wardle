@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+	<featureModel chosenLayoutAlgorithm="1">
+		<struct>
+			<and abstract="true" mandatory="true" name="ChristopherWardleTask1">
+				<and mandatory="true" name="MP3-Player">
+					<description>
+						The basic mp3 program. It includes the basic functions to play music files (play, pause, stop, rewind, fast-forward, previous title, next title).
+						It has a basic GUI (skin) and can play multiple files, though they are stored in a temporary list unless the 'save own playlists' feature is enabled.
+					</description>
+					<and abstract="true" name="Repeat">
+						<description>
+							 
+						</description>
+						<feature mandatory="true" name="Repeat One">
+							<description>
+								Repeat the currently playing song.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Repeat List">
+							<description>
+								Repeat the currently playing list.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Repeat All">
+							<description>
+								Play all songs and then repeat (is the same as 'Repeat List' if 'Save Own Playlists' is disabled).
+							</description>
+						</feature>
+					</and>
+					<and abstract="true" name="Shuffle">
+						<description>
+							Play songs in random order.
+						</description>
+						<feature mandatory="true" name="Shuffle List">
+							<description>
+								Play the songs of the currently playing list in random order.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Shuffle All">
+							<description>
+								Play all songs in library in random order (is the same as 'Shuffle List' if 'Save Own Playlists' is disabled).
+							</description>
+						</feature>
+					</and>
+					<feature name="Save Own Playlists">
+						<description>
+							Create individual playlists, name them and save them for later use.
+						</description>
+					</feature>
+					<feature name="Queue">
+						<description>
+							Add songs to the queue. After queue is finished, return to list playing before queue was started.
+						</description>
+					</feature>
+					<feature name="Drag &amp; Drop Behaviour">
+						<description>
+							Music files can be dragged into the player to add them to the currently playing list.
+						</description>
+					</feature>
+					<and name="Equalizer">
+						<description>
+							A basic equalizer to change the sound of the music.
+						</description>
+						<feature name="Presets">
+							<description>
+								Presets for equalizer configuration like 'Rock', 'Pop', Classic', 'Hip Hop', 'Vocal'.
+							</description>
+						</feature>
+					</and>
+					<and abstract="true" name="Network Functions">
+						<description>
+							Functions requiring a network/internet connection.
+						</description>
+						<feature name="Internet Radio">
+							<description>
+								Integration of several internet radio stations (requires internet connection).
+							</description>
+						</feature>
+						<feature name="Fetch Lyrics">
+							<description>
+								Download lyrics of the selected song from a provided source (URL).
+							</description>
+						</feature>
+						<feature name="Fetch Missing Metadata">
+							<description>
+								Download missing metadata like title, artist, album from a provided source (URL).
+							</description>
+						</feature>
+						<and abstract="true" name="Synchronisation">
+							<description>
+								 
+							</description>
+							<feature name="Devices">
+								<description>
+									Synchronise playlists with other devices.
+									Enables to share either only the playlists or the music files with other devices.
+								</description>
+							</feature>
+							<feature name="Stores">
+								<description>
+									Synchronise playlists with music stores, e.g. import music files from Amazon Music Store.
+								</description>
+							</feature>
+						</and>
+					</and>
+					<feature name="Search">
+						<description>
+							Search through the music files of the library/playlist via title, author etc.
+						</description>
+					</feature>
+					<feature name="Save Audio Playback">
+						<description>
+							Save the order of all played songs and display them as a playlist.
+						</description>
+					</feature>
+					<feature name="Sort Music By Genre">
+						<description>
+							The user can tag music files with a genre and let the player sort them by those genres.
+						</description>
+					</feature>
+					<feature name="Music Rating">
+						<description>
+							The user can rate the music files and sort them by rating score.
+						</description>
+					</feature>
+					<feature name="Skins">
+						<description>
+							Import of different, pre-configured skins for the player's GUI.
+						</description>
+					</feature>
+					<feature name="Explore New Music">
+						<description>
+							Based on ratings and genres, the player can try to find new music online (requires music database as source).
+						</description>
+					</feature>
+					<feature name="Support Video Files">
+						<description>
+							Adds a basic video player for playing video files (mp4, avi, wmv)
+						</description>
+					</feature>
+					<and name="Audio Tweaks">
+						<description>
+							Adds several advanced audio functions.
+						</description>
+						<feature mandatory="true" name="Fade-In/Fade-Out">
+							<description>
+								Fades into or out of the song at the start or end of the list and on play/pause/stop.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Crossfading">
+							<description>
+								Fades from one song to the next within a given interval.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Cut Silence">
+							<description>
+								Cut silence in beginning and end of songs.
+							</description>
+						</feature>
+					</and>
+					<feature name="Rename Titles In List">
+						<description>
+							Renaming title in the list of the player without changing the file name on the system.
+						</description>
+					</feature>
+					<feature name="YouTube Integration">
+						<description>
+							Dedicated Browser to explore and play songs/videos from YouTube.
+						</description>
+					</feature>
+				</and>
+			</and>
+		</struct>
+		<constraints>
+			<rule>
+				<imp>
+					<var>Explore New Music</var>
+					<conj>
+						<var>Sort Music By Genre</var>
+						<var>Music Rating</var>
+					</conj>
+				</imp>
+			</rule>
+			<rule>
+				<imp>
+					<var>YouTube Integration</var>
+					<var>Support Video Files</var>
+				</imp>
+			</rule>
+		</constraints>
+		<calculations Auto="true" Constraints="true" Features="true" Redundant="true" Tautology="true"/>
+		<comments/>
+		<featureOrder userDefined="false"/>
+	</featureModel>
