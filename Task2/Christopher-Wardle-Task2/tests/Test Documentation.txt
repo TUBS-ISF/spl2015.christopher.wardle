@@ -1,0 +1,9 @@
+Tested the project with Eclipse with the following configurations:
+
+Configuration 1: Repeat and Shuffle on
+Configuration 2: Repeat on, Shuffle off
+Configuration 3: Repeat off, Shuffle on
+Configuration 4: both off
+
+Program's behaviour was as expected, only selected buttons were displayed.
+If no parameters are specified, configuration 4 will be applied.
