@@ -1,0 +1,32 @@
+# Lists all features from the model with manual (first digit) and automatic (second digit) selection
+# 0 = deselected, 1 = selected, 2 = undefined
+21ChristopherWardleTask3
+11VocabularyTrainer
+21Import
+21csvImport
+22txtImport
+22xmlImport
+22Export
+22csvExport
+22txtExport
+22xmlExport
+22Shuffle
+22Feedback
+22WrongAnswersFeedback
+22EvaluationFeedback
+21ReadLists
+20JIT
+12Start
+22Categories
+22BackgroundMusic
+22Statistics
+22UserManagement
+22DatabaseIntegration
+22Fonts
+22Tests
+22Types
+22Memory
+22Timed
+22MultipleChoice
+22Tolerance
+22Skins
