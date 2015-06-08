@@ -3,15 +3,15 @@
 		<struct>
 			<and abstract="true" mandatory="true" name="ChristopherWardleTask1Alternative">
 				<and name="VocabularyTrainer">
-					<and mandatory="true" name="Import">
+					<and abstract="true" mandatory="true" name="Import">
 						<description>
 							Import lists from external sources.
 						</description>
 						<feature mandatory="true" name="csvImport"/>
-						<feature mandatory="true" name="txtImport"/>
-						<feature mandatory="true" name="xmlImport"/>
+						<feature name="txtImport"/>
+						<feature name="xmlImport"/>
 					</and>
-					<and name="Export">
+					<and abstract="true" name="Export">
 						<feature name="csvExport"/>
 						<feature name="txtExport"/>
 						<feature name="xmlExport"/>
@@ -82,7 +82,7 @@
 					</feature>
 					<and abstract="true" name="Types">
 						<description>
-							 
+							
 						</description>
 						<feature name="Memory">
 							<description>

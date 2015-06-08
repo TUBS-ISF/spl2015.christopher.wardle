@@ -4,8 +4,8 @@
 11VocabularyTrainer
 21Import
 21csvImport
-21txtImport
-21xmlImport
+12txtImport
+22xmlImport
 11Export
 12csvExport
 12txtExport

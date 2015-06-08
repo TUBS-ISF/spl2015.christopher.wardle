@@ -4,8 +4,8 @@
 21VocabularyTrainer
 11Import
 21csvImport
-21txtImport
-21xmlImport
+22txtImport
+22xmlImport
 11Export
 12csvExport
 22txtExport
@@ -18,7 +18,7 @@
 20JIT
 12Start
 12Categories
-22BackgroundMusic
+12BackgroundMusic
 22Statistics
 22UserManagement
 22DatabaseIntegration

@@ -4,10 +4,10 @@
 11VocabularyTrainer
 21Import
 21csvImport
-21txtImport
-21xmlImport
-21Export
-12csvExport
+12txtImport
+22xmlImport
+22Export
+22csvExport
 22txtExport
 22xmlExport
 12Shuffle
