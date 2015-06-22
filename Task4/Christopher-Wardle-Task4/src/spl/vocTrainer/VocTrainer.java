@@ -3,39 +3,34 @@ package spl.vocTrainer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Random;
 
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileFilter;
 
+import spl.vocTrainer.plugins.CategoriesPlugin;
+import spl.vocTrainer.plugins.FeedbackPlugin;
+import spl.vocTrainer.plugins.ImportPlugin;
+import spl.vocTrainer.plugins.ShufflePlugin;
 import spl.vocTrainer.utilities.Category;
 import spl.vocTrainer.utilities.Dictionary;
-import au.com.bytecode.opencsv.CSVReader;
+import spl.vocTrainer.utilities.Entry;
 
 public class VocTrainer extends JFrame implements ActionListener {
 
@@ -45,46 +40,52 @@ public class VocTrainer extends JFrame implements ActionListener {
     private final Box toolBar = Box.createVerticalBox();
     private JTextField answerField;
     private JTextArea displayVocArea;
-    private JButton submitAnswer, randomize,prevVoc, nextVoc;
+    private JButton submitAnswer, randomize, prevVoc, nextVoc;
     private JMenuBar menuBar;
-    private JMenu fileMenu, categoryMenu;
+    private JMenu fileMenu;
     private JMenuItem importItem, exitItem;
     private JScrollPane scrollPane;
-    private JCheckBoxMenuItem checkAllItem;
-    private final JFileChooser fileChooser = new JFileChooser("E:\\Documents\\spl2015_git_repository\\Task4\\Christopher-Wardle-Task4\\resources");
 
     // fields for VocTrainer functionality
     private Dictionary vocabularies;
     private Random r = new Random();
     private Category currentCategory;
     private int currentVocabulary;
-    private boolean random = false;
-    private boolean[] selectedCategories;
 
-    /**
-     * Launch the application.
-     */
-    public static void main(String[] args) {
-	EventQueue.invokeLater(new Runnable() {
-	    public void run() {
-		try {
-		    VocTrainer vocTrainer = new VocTrainer();
-		    vocTrainer.setVisible(true);
-		}
-		catch (Exception e) {
-		    e.printStackTrace();
-		}
-	    }
-	});
-    }
+    // fields for Plugins
+    ShufflePlugin shufflePlugin;
+    ImportPlugin importPlugin;
+    CategoriesPlugin categoriesPlugin;
+    FeedbackPlugin feedbackPlugin;
 
     /**
      * Create the frame.
      */
-    public VocTrainer() {
+    public VocTrainer(ShufflePlugin shufflePlugin, ImportPlugin importPlugin, CategoriesPlugin categoriesPlugin, FeedbackPlugin feedbackPlugin) {
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	setBounds(100, 100, 720, 500);
 	setTitle("Vocabulary Trainer");
+
+	// set shuffle plugin
+	this.shufflePlugin = shufflePlugin;
+	if (this.shufflePlugin != null) {
+	    this.shufflePlugin.setApplication(this);
+	}
+	// set import plugin
+	this.importPlugin = importPlugin;
+	if (this.importPlugin != null) {
+	    this.importPlugin.setApplication(this);
+	}
+	// set categories plugin
+	this.categoriesPlugin = categoriesPlugin;
+	if (this.categoriesPlugin != null) {
+	    this.categoriesPlugin.setApplication(this);
+	}
+	// set feedback plugin
+	this.feedbackPlugin = feedbackPlugin;
+	if (this.feedbackPlugin != null) {
+	    this.feedbackPlugin.setApplication(this);
+	}
 
 	menuBar = new JMenuBar();
 	setJMenuBar(menuBar);
@@ -92,9 +93,11 @@ public class VocTrainer extends JFrame implements ActionListener {
 	fileMenu = new JMenu("File");
 	menuBar.add(fileMenu);
 
-	importItem = new JMenuItem("Import...");
-	importItem.addActionListener(this);
-	fileMenu.add(importItem);
+	if (importPlugin != null) {
+	    importItem = new JMenuItem(importPlugin.getButtonText());
+	    importItem.addActionListener(importPlugin.buttonClicked());
+	    fileMenu.add(importItem);
+	}
 
 	exitItem = new JMenuItem("Exit");
 	exitItem.addActionListener(this);
@@ -121,12 +124,12 @@ public class VocTrainer extends JFrame implements ActionListener {
 	scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 	contentPane.add(scrollPane, BorderLayout.CENTER);
 
-
-	randomize = new JButton("Randomize");
-	randomize.setBackground(Color.red);
-	randomize.addActionListener(this);
-	toolBar.add(randomize);
-
+	// add shuffle button if plugin is activated
+	if (shufflePlugin != null) {
+	    randomize = shufflePlugin.getRandomizeButton();
+	    randomize.addActionListener(shufflePlugin.buttonClicked());
+	    toolBar.add(randomize);
+	}
 
 	toolBar.add(Box.createRigidArea(new Dimension(0, 5)));
 
@@ -162,151 +165,83 @@ public class VocTrainer extends JFrame implements ActionListener {
 	contentPane.add(answerElements, BorderLayout.SOUTH);
     }
 
-    private void evaluateAnswer(String text) {
-	String correctAnswer = vocabularies.getCategory(currentCategory).getValue(currentVocabulary);
-	if (correctAnswer.toUpperCase().equals(text.toUpperCase())) {
-	    displayVocArea.append("\n" + correctAnswer + " - Correct :)\n\n");
+    /**
+     * Standard evaluation method for answers.
+     * 
+     * @param answer
+     *            Answer from the answerField text field the user gave as String
+     * @param solution
+     *            spl.vocTrainer.utilities.Entry object of the currently asked vocabulary
+     */
+    private void evaluateAnswer(String answer, Entry solution) {
+	if (solution.getValue().toUpperCase().equals(answer.toUpperCase())) {
+	    displayVocArea.append("\n" + solution.getValue() + " - Correct :)\n\n");
 	}
 	else {
-	    displayVocArea.append("\n" + text + " - Incorrect :(\n\n");
+	    displayVocArea.append("\n" + answer + " - Incorrect :(\n\n");
 	}
     }
 
-    public Dictionary importFile(File file) {
-	// list for all vocabularies ordered by category if provided
-	Dictionary vocabularies = null;
-
-	// detect file format for correct import method
-	String fileExtension = getFileExtension(file.getName());
-
-	// import file depending on file extension
-	if (fileExtension.equals("csv")) {
-	    vocabularies = importCSVFile(file);
-	}
-
-	else if (fileExtension.equals("txt")) {
-	    vocabularies = importTXTFile(file);
-	}
-	else if (fileExtension.equals("xml")) {
-	 vocabularies = importXMLFile(file);
-	 }
-	else {
-
-	}
-
-	return vocabularies;
+    /**
+     * Utility method for plugins to write text.
+     * 
+     * @param text
+     */
+    public void setText(String text) {
+	displayVocArea.setText(text);
     }
 
-    private Dictionary importCSVFile(File file) {
-	Dictionary vocabularies = null;
-	try {
-	    @SuppressWarnings("resource")
-	    CSVReader csvReader = new CSVReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
-	    String[] nextLine;
-	    Category currentCategory = null;
-	    while ((nextLine = csvReader.readNext()) != null) {
-		if (nextLine[0].startsWith("%DICT") && nextLine.length == 3) {
-		    // start of the dictionary
-		    vocabularies = new Dictionary(nextLine[1] + " - " + nextLine[2] + " Dictionary");
-		    displayVocArea.setText("Welcome to your " + vocabularies.getName() + "!\n");
-		    continue;
-		}
+    /**
+     * Utility method for plugins to append text
+     * 
+     * @param text
+     */
+    public void appendText(String text) {
+	displayVocArea.append("\n" + text);
+    }
 
-		if (nextLine[0].startsWith("%CAT")) {
-		    // create new category
-		    currentCategory = new Category(nextLine[1]);
-		    vocabularies.addCategory(currentCategory);
-		    continue;
-		}
+    /**
+     * Method for import plugin to tell it has finished with the import.
+     * 
+     * @param voc
+     *            The imported Dictionary
+     */
+    public void importFinished(Dictionary voc) {
+	if (voc != null) {
+	    vocabularies = voc;
+	    currentCategory = vocabularies.getCategory(0);
+	    currentVocabulary = 0;
 
-		if (currentCategory == null) {
-		    currentCategory = new Category("default");
-		    vocabularies.addCategory(currentCategory);
-		}
-		vocabularies.getCategory(currentCategory).addNewEntry(nextLine[0], nextLine[1]);
+	    if (categoriesPlugin != null) {
+		menuBar.add(categoriesPlugin.createCategoryMenu());
+		contentPane.revalidate();
+		categoriesPlugin.checkAll(true);
 	    }
-	    System.out.println("File import successful!");
-	}
-	catch (FileNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-	catch (IOException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-	catch (ArrayIndexOutOfBoundsException e) {
-	    System.err.println("Probably invalid syntax in imported file \"" + file.getPath() + "\"");
-	    e.printStackTrace();
-	}
 
-	return vocabularies;
+	    nextVocabulary();
+	}
     }
 
-    private Dictionary importXMLFile(File file) {
-     // TODO Auto-generated method stub
-     return null;
-     }
-    
-
-    private Dictionary importTXTFile(File file) {
-	Dictionary vocabularies = null;
-	try {
-	    @SuppressWarnings("resource")
-	    BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
-	    String nextLine;
-	    Category currentCategory = null;
-	    while ((nextLine = br.readLine()) != null) {
-		String[] entries = nextLine.split(",");
-		if (entries[0].startsWith("%DICT") && entries.length == 3) {
-		    // start of the dictionary
-		    vocabularies = new Dictionary(entries[1] + " - " + entries[2] + " Dictionary");
-		    displayVocArea.setText("Welcome to your " + vocabularies.getName() + "!\n");
-		    continue;
-		}
-
-		if (entries[0].startsWith("%CAT")) {
-		    // create new category
-		    currentCategory = new Category(entries[1]);
-		    vocabularies.addCategory(currentCategory);
-		    continue;
-		}
-
-		if (currentCategory == null) {
-		    currentCategory = new Category("default");
-		    vocabularies.addCategory(currentCategory);
-		}
-		vocabularies.getCategory(currentCategory).addNewEntry(entries[0], entries[1]);
-	    }
-	    System.out.println("File import successful!");
-	}
-	catch (FileNotFoundException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-	catch (IOException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-	catch (ArrayIndexOutOfBoundsException e) {
-	    System.err.println("Probably invalid syntax in imported file \"" + file.getPath() + "\"");
-	    e.printStackTrace();
-	}
-	return vocabularies;
-    }
-
-    private static String getFileExtension(String fileName) {
-	int index = fileName.lastIndexOf(".");
-	String fileExtension = fileName.substring(index + 1);
-
-	return fileExtension;
-    }
-
+    /**
+     * Gets next vocabulary according to random and/or category variables.
+     */
     private void nextVocabulary() {
 	// get next vocabulary
-	String nextVocabulary;
+	Entry nextEntry;
+	boolean random = false;
+	if (shufflePlugin != null) {
+	    random = shufflePlugin.getRandom();
+	}
+	if (categoriesPlugin != null) {
+	    if (!categoriesPlugin.getSelectedCategories()[vocabularies.getCategoryIndex(currentCategory) + 1]) {
+		nextCategory(categoriesPlugin.getSelectedCategories());
+	    }
+	}
 	if (random) {
-	    nextCategory();
+	    if (categoriesPlugin != null) {
+		nextCategory(categoriesPlugin.getSelectedCategories());
+	    }
+
 	    currentVocabulary = r.nextInt(vocabularies.getCategory(currentCategory).getSize());
 	}
 	else {
@@ -315,16 +250,38 @@ public class VocTrainer extends JFrame implements ActionListener {
 		currentVocabulary++;
 	    }
 	    else {
-		nextCategory();
+		if (categoriesPlugin != null) {
+		    nextCategory(categoriesPlugin.getSelectedCategories());
+		}
 		currentVocabulary = 0;
 	    }
 
 	}
-	nextVocabulary = currentCategory.getKey(currentVocabulary);
-	displayVocArea.append("What does this vocabulary mean?\n" + nextVocabulary);
+	nextEntry = getCurrentEntry();
+	displayVocArea.append("\nWhat does this vocabulary mean?\n" + nextEntry.getKey());
     }
 
-    private void nextCategory() {
+    /**
+     * Gets one specific vocabulary.
+     * 
+     * @param entry
+     *            The specific Entry object.
+     */
+    private void nextVocabulary(Entry entry) {
+	displayVocArea.append("\nWhat does this vocabulary mean?\n" + entry.getKey());
+    }
+
+    /**
+     * Changes the category to another valid one (valid is every selected category).
+     * 
+     * @param selectedCategories
+     *            Array with true values for every selected category
+     */
+    private void nextCategory(boolean[] selectedCategories) {
+	boolean random = false;
+	if (shufflePlugin != null) {
+	    random = shufflePlugin.getRandom();
+	}
 	if (random) {
 	    do {
 		currentCategory = vocabularies.getCategory(r.nextInt(vocabularies.getCategories().size()));
@@ -338,124 +295,109 @@ public class VocTrainer extends JFrame implements ActionListener {
 	}
     }
 
-    private void checkAll(boolean value) {
-	if (categoryMenu.getItemCount() > 0) {
-	    for (int i = 0; i < categoryMenu.getItemCount(); i++) {
-		categoryMenu.getItem(i).setSelected(value);
-		selectedCategories[i] = value;
-	    }
-	}
+    /**
+     * Getter for the dictionary currently used.
+     * 
+     * @return The current dictionary
+     */
+    public Dictionary getVocabularies() {
+	return vocabularies;
     }
 
-    private void createCategoryMenu() {
-	categoryMenu = new JMenu("Categories");
-
-	// create CheckBoxMenuItem for checking all items
-	checkAllItem = new JCheckBoxMenuItem("Check All");
-	checkAllItem.addActionListener(this);
-	categoryMenu.add(checkAllItem);
-
-	for (Category c : vocabularies.getCategories()) {
-	    JCheckBoxMenuItem item = new JCheckBoxMenuItem(c.getName());
-	    item.addActionListener(this);
-	    categoryMenu.add(item);
-	}
-	selectedCategories = new boolean[categoryMenu.getItemCount()];
-	menuBar.add(categoryMenu);
-	contentPane.revalidate();
+    /**
+     * Gets the answer that the user typed into the answer field.
+     * 
+     * @return Answer as String
+     */
+    public String getUserAnswer() {
+	return answerField.getText();
     }
 
+    /**
+     * Gets the currently asked entry.
+     * 
+     * @return Current Entry object
+     */
+    public Entry getCurrentEntry() {
+	return currentCategory.getEntry(currentVocabulary);
+    }
+
+    /**
+     * Gets the category of the currently asked entry.
+     * 
+     * @return Current Category object
+     */
+    public Category getCurrentCategory() {
+	return currentCategory;
+    }
+
+    /**
+     * ActionPerformed method is triggered whenever the user submits an answer or exits via the menu item.
+     */
     public void actionPerformed(ActionEvent e) {
 	if (e.getSource() == this.answerField || e.getSource() == this.submitAnswer) {
-	    evaluateAnswer(answerField.getText());
-	    nextVocabulary();
+	    String answer = getUserAnswer();
+	    Entry solution;
+	    // if last round is active, get that solution
+	    if (feedbackPlugin != null && feedbackPlugin.isLastRound()) {
+		solution = feedbackPlugin.getCurrentEntry();
+	    }
+	    // otherwise use the currentCategory and currentVocabulary variables
+	    else {
+		solution = getCurrentEntry();
+	    }
+	    // evaluate the answer
+	    if (feedbackPlugin != null) {
+		feedbackPlugin.wrongAnswersFeedback(answer, solution);
+	    }
+	    else {
+		evaluateAnswer(answer, solution);
+	    }
+	    // get next vocabulary, depending on last round variable
+	    if (feedbackPlugin != null && feedbackPlugin.isLastRound()) {
+		Entry next = feedbackPlugin.getNextEntry();
+		if (next != null) {
+		    nextVocabulary(next);
+		}
+		else {
+		    // for now just exit and print message on command line
+		    System.out.println("Good bye!");
+		    System.exit(EXIT_ON_CLOSE);
+		}
+	    }
+	    else {
+		nextVocabulary();
+	    }
 	    answerField.setText("");
 	}
-	else if (e.getSource() == this.importItem) {
-	    // import File and show the first vocabulary
-
-	    // add different file filters (silly anonymous types due to Java1.5)
-	    fileChooser.addChoosableFileFilter(new FileFilter() {
-
-		@Override
-		public String getDescription() {
-		    return "CSV Files";
-		}
-
-		@Override
-		public boolean accept(File f) {
-		    return f.getName().endsWith(".csv");
-		}
-	    });
-
-	    fileChooser.addChoosableFileFilter(new FileFilter() {
-
-		@Override
-		public String getDescription() {
-		    return "TXT Files";
-		}
-
-		@Override
-		public boolean accept(File f) {
-		    return f.getName().endsWith(".txt");
-		}
-	    });
-
-	    fileChooser.addChoosableFileFilter(new FileFilter() {
-	        
-	        @Override
-	        public String getDescription() {
-	    	    return "XML Files";
-	        }
-	        
-	        @Override
-	        public boolean accept(File f) {
-	    	    return f.getName().endsWith(".xml");
-	        }
-	    });
-	    int returnVal = fileChooser.showOpenDialog(VocTrainer.this);
-
-	    if (returnVal == JFileChooser.APPROVE_OPTION) {
-		vocabularies = importFile(fileChooser.getSelectedFile());
-		if (vocabularies != null) {
-		    currentCategory = vocabularies.getCategory(0);
-		    currentVocabulary = 0;
-
-		    createCategoryMenu();
-		    checkAll(true);
-		    nextVocabulary();
-		}
-	    }
-	}
-
-	else if (e.getSource() == randomize) {
-	    random = !random;
-	    if (random) {
-		randomize.setBackground(new Color(124, 205, 124));
-	    }
-	    else {
-		randomize.setBackground(new Color(238, 44, 44));
-	    }
-	}
-	else if (e.getSource() == checkAllItem) {
-	    if (checkAllItem.isSelected()) {
-		checkAll(true);
-	    }
-	    else {
-		checkAll(false);
-	    }
-
-	}
 	else if (e.getSource() == exitItem) {
-	    System.exit(EXIT_ON_CLOSE);
-	}
-	else if (e.getSource() instanceof JCheckBoxMenuItem) {
-	    JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
-	    Category c = vocabularies.getCategory(item.getText());
-	    selectedCategories[vocabularies.getCategoryIndex(c) + 1] = item.isSelected();
-	    // change category if needed
-	    if (!selectedCategories[vocabularies.getCategoryIndex(currentCategory) + 1]) {
-		nextCategory();
+	    if (feedbackPlugin != null) {
+		int n = JOptionPane.showConfirmDialog(null, "Do you want to go through your "
+			+ "incorrectly answered vocabularies once more before you leave?", "Last round", JOptionPane.YES_NO_CANCEL_OPTION);
+		switch (n) {
+		case 0:
+		    feedbackPlugin.evaluationFeedback();
+		    displayVocArea.append("\nLet's start the last round of vocabularies!\n");
+		    Entry entry = feedbackPlugin.getCurrentEntry();
+		    if (entry != null) {
+			nextVocabulary(entry);
+		    }
+		    else {
+			//for now just exit and print message on command line
+			System.out.println("You answered everything correctly. Well done!");
+			System.exit(EXIT_ON_CLOSE);
+		    }
+		    break;
+		case 1:
+		    // exit
+		    System.exit(EXIT_ON_CLOSE);
+		    break;
+		default:
+		    // ignore these cases -> do nothing
+		}
+	    }
+	    else {
+		System.exit(EXIT_ON_CLOSE);
 	    }
 	}
     }
