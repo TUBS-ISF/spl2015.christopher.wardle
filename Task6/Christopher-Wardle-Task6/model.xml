@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+	<featureModel chosenLayoutAlgorithm="1">
+		<struct>
+			<and abstract="true" mandatory="true" name="ChristopherWardleTask6">
+				<and abstract="true" name="VocabularyTrainer">
+					<and abstract="true" mandatory="true" name="Import">
+						<description>
+							Import lists from external sources.
+						</description>
+						<feature mandatory="true" name="csvImport"/>
+						<feature abstract="true" name="txtImport"/>
+						<feature abstract="true" name="xmlImport"/>
+					</and>
+					<and abstract="true" name="Export">
+						<feature name="csvExport"/>
+						<feature abstract="true" name="txtExport"/>
+						<feature abstract="true" name="xmlExport"/>
+					</and>
+					<feature name="Shuffle">
+						<description>
+							Shuffle the order the vocabularies are tested.
+						</description>
+					</feature>
+					<and abstract="true" name="Feedback">
+						<feature name="WrongAnswersFeedback">
+							<description>
+								Giving a wrong or incomplete answer, the user gets feedback on what the correct/complete answer would have been.
+							</description>
+						</feature>
+						<feature name="EvaluationFeedback">
+							<description>
+								Before quitting the trainer, the user gets a last round of all vocabularies he got wrong and another chance to answer them correctly.
+							</description>
+						</feature>
+					</and>
+					<alt abstract="true" mandatory="true" name="ReadLists">
+						<feature abstract="true" mandatory="true" name="JIT">
+							<description>
+								Read the list one vocabulary at a time as needed.
+							</description>
+						</feature>
+						<feature mandatory="true" name="Start">
+							<description>
+								Read the whole list once at the start of the program.
+							</description>
+						</feature>
+					</alt>
+					<feature name="Categories">
+						<description>
+							The user can specify categories and assign vocabularies to them.
+						</description>
+					</feature>
+					<feature abstract="true" name="BackgroundMusic">
+						<description>
+							The user can choose a music file to play in the background while he/she is learning.
+						</description>
+					</feature>
+					<feature name="Statistics">
+						<description>
+							Statistics about correct, incomplete and wrong answers are stored and accessible (even after multiple sessions, so it will be stored in an external file).
+						</description>
+					</feature>
+					<feature name="UserManagement">
+						<description>
+							Enables creation of different user accounts with seperate statistics and vocabularies.
+						</description>
+					</feature>
+					<feature name="DatabaseIntegration">
+						<description>
+							Stores lists and statistics in an external database instead of an external file on the local system.
+						</description>
+					</feature>
+					<feature abstract="true" name="Fonts">
+						<description>
+							The user can change the font used to display the vocabularies.
+						</description>
+					</feature>
+					<feature abstract="true" name="Tests">
+						<description>
+							The user can define own tests and save them for later use.
+						</description>
+					</feature>
+					<and abstract="true" name="Types">
+						<description>
+							
+						</description>
+						<feature abstract="true" name="Memory">
+							<description>
+								Vocabularies and their correct translations are memory cards that the user has to pair correctly.
+							</description>
+						</feature>
+						<feature abstract="true" name="Timed">
+							<description>
+								The user is timed during his test and the total time is ranked against prior test times.
+							</description>
+						</feature>
+						<feature abstract="true" name="MultipleChoice">
+							<description>
+								The user is given multiple choices for the correct answer.
+							</description>
+						</feature>
+					</and>
+					<feature abstract="true" name="Tolerance">
+						<description>
+							The trainer is tolerant regarding misspelling or small variations within the answer (e.g. 'the' instead of 'a').
+						</description>
+					</feature>
+					<feature abstract="true" name="Skins">
+						<description>
+							Support of (possibly css) skins to change the appearance of the trainer.
+						</description>
+					</feature>
+				</and>
+			</and>
+		</struct>
+		<constraints>
+			<rule>
+				<imp>
+					<var>UserManagement</var>
+					<var>DatabaseIntegration</var>
+				</imp>
+			</rule>
+			<rule>
+				<imp>
+					<var>Statistics</var>
+					<var>DatabaseIntegration</var>
+				</imp>
+			</rule>
+		</constraints>
+		<calculations Auto="true" Constraints="true" Features="true" Redundant="true" Tautology="true"/>
+		<comments/>
+		<featureOrder userDefined="false"/>
+	</featureModel>

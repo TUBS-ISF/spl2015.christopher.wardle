@@ -10,7 +10,7 @@ Third party libraries used are:
   Published under [Apache 2] (http://www.apache.org/licenses/LICENSE-2.0.txt)
   
 **Usage**
-Simply run VocTrainer.java and the trainer will start.
+Simply run Main.java and the trainer will start.
 
 For the DatabaseIntegration and UserManagement feature a MongoDB Server is required to run on port 27017 at the specified IP.
 After installing MongoDB, run the mongod.exe with the --dbpath parameter pointing to the resources\MongoDB directory of this project (that's where the database is).
